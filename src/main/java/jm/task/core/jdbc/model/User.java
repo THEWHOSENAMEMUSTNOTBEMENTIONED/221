@@ -1,28 +1,33 @@
 package jm.task.core.jdbc.model;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.hibernate.annotations.Entity;
 
-@Table
+import javax.persistence.*;
+
+@javax.persistence.Entity
+
+@Entity
+@Table(name = "User")  // Таблица в базе данных
 public class User {
-    @Id
-    private Long id;
 
-    @Column
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  // Автоинкремент в MySQL
+    @Column(name = "id")  // Колонка id в таблице
+    private long id;
+
+    @Column(name = "name")  // Колонка name в таблице
     private String name;
 
-    @Column
+    @Column(name = "lastName")  // Колонка lastName в таблице
     private String lastName;
 
-    @Column
-    private Byte age;
+    @Column(name = "age")  // Колонка age в таблице
+    private byte age;
 
-    public User() {
+    // Конструкторы, геттеры и сеттеры
+    public User() {}
 
-    }
-
-    public User(String name, String lastName, Byte age) {
+    public User(String name, String lastName, byte age) {
         this.name = name;
         this.lastName = lastName;
         this.age = age;

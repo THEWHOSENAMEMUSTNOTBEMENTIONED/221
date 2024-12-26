@@ -25,102 +25,129 @@ public class UserDaoHibernateImpl implements UserDao {
                 "age TINYINT, " +
                 "PRIMARY KEY (id))";
 
-        // Получаем SessionFactory в методе
-        try (SessionFactory sessionFactory = Util.getConnectionHibernate()) {
-            try (Session session = sessionFactory.openSession()) {
-                Transaction transaction = session.beginTransaction();  // Начинаем транзакцию
+
+        try (SessionFactory sessionFactory = Util.getConnectionHibernate();
+             Session session = sessionFactory.openSession()) {
+
+            Transaction transaction = session.beginTransaction();  // Начинаем транзакцию
+            try {
                 Query query = session.createSQLQuery(sql);
-//                query.executeUpdate();  // Выполняем SQL-запрос
-                transaction.commit();  // Фиксируем транзакцию
+                query.executeUpdate();
+                transaction.commit();
+            } catch (Exception e) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            e.printStackTrace();  // Логируем ошибку
+            e.printStackTrace();
         }
     }
 
-    // Метод для удаления таблицы (через SQL)
     @Override
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS users";
 
-        // Получаем SessionFactory в методе
-        try (SessionFactory sessionFactory = Util.getConnectionHibernate()) {
-            try (Session session = sessionFactory.openSession()) {
-                Transaction transaction = session.beginTransaction();  // Начинаем транзакцию
+        // Используем один try с ресурсами
+        try (SessionFactory sessionFactory = Util.getConnectionHibernate();
+             Session session = sessionFactory.openSession()) {
+
+            Transaction transaction = session.beginTransaction();
+            try {
                 Query query = session.createSQLQuery(sql);
-                query.executeUpdate();  // Выполняем SQL-запрос
-                transaction.commit();  // Фиксируем транзакцию
+                query.executeUpdate();
+                transaction.commit();
+            } catch (Exception e) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            e.printStackTrace();  // Логируем ошибку
+            e.printStackTrace();
         }
     }
 
-    // Метод для сохранения пользователя
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        // Получаем SessionFactory в методе
-        try (SessionFactory sessionFactory = Util.getConnectionHibernate()) {
-            try (Session session = sessionFactory.openSession()) {
-                Transaction transaction = session.beginTransaction();  // Начинаем транзакцию
-                User user = new User(name, lastName, age);  // Создаем нового пользователя
-                session.save(user);  // Сохраняем пользователя
-                transaction.commit();  // Фиксируем транзакцию
+        try (SessionFactory sessionFactory = Util.getConnectionHibernate();
+             Session session = sessionFactory.openSession()) {
+
+            Transaction transaction = session.beginTransaction();
+            try {
+                User user = new User(name, lastName, age);
+                session.save(user);
+                transaction.commit();
                 System.out.println("User с именем — " + name + " добавлен в базу данных");
+            } catch (Exception e) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            e.printStackTrace();  // Логируем ошибку
+            e.printStackTrace();
         }
     }
 
-    // Метод для удаления пользователя по ID
     @Override
     public void removeUserById(long id) {
-        // Получаем SessionFactory в методе
-        try (SessionFactory sessionFactory = Util.getConnectionHibernate()) {
-            try (Session session = sessionFactory.openSession()) {
-                Transaction transaction = session.beginTransaction();  // Начинаем транзакцию
-                User user = session.get(User.class, id);  // Получаем пользователя по ID
+        try (SessionFactory sessionFactory = Util.getConnectionHibernate();
+             Session session = sessionFactory.openSession()) {
+
+            Transaction transaction = session.beginTransaction();
+            try {
+                User user = session.get(User.class, id);
                 if (user != null) {
-                    session.delete(user);  // Удаляем пользователя
+                    session.delete(user);
                     System.out.println("User с ID — " + id + " удалён из базы данных");
                 }
-                transaction.commit();  // Фиксируем транзакцию
+                transaction.commit();
+            } catch (Exception e) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            e.printStackTrace();  // Логируем ошибку
+            e.printStackTrace();
         }
     }
 
-    // Метод для получения всех пользователей
     @Override
     public List<User> getAllUsers() {
         List<User> users = null;
-        // Получаем SessionFactory в методе
-        try (SessionFactory sessionFactory = Util.getConnectionHibernate()) {
-            try (Session session = sessionFactory.openSession()) {
-                Query<User> query = session.createQuery("FROM User ", User.class);  // Запрос на выборку всех пользователей
-                users = query.list();  // Получаем всех пользователей
-            }
+        try (SessionFactory sessionFactory = Util.getConnectionHibernate();
+             Session session = sessionFactory.openSession()) {
+
+            Query<User> query = session.createQuery("FROM User", User.class);
+            users = query.list();
         } catch (Exception e) {
-            e.printStackTrace();  // Логируем ошибку
+            e.printStackTrace();
         }
-        return users;  // Возвращаем список пользователей
+        return users;
     }
 
-    // Метод для очистки таблицы пользователей
     @Override
     public void cleanUsersTable() {
-        // Получаем SessionFactory в методе
-        try (SessionFactory sessionFactory = Util.getConnectionHibernate()) {
-            try (Session session = sessionFactory.openSession()) {
-                Transaction transaction = session.beginTransaction();  // Начинаем транзакцию
-                Query query = session.createSQLQuery("TRUNCATE TABLE users");  // Очищаем таблицу
-                query.executeUpdate();  // Выполняем очистку
-                transaction.commit();  // Фиксируем транзакцию
+        try (SessionFactory sessionFactory = Util.getConnectionHibernate();
+             Session session = sessionFactory.openSession()) {
+
+            Transaction transaction = session.beginTransaction();
+            try {
+                Query query = session.createSQLQuery("TRUNCATE TABLE users");
+                query.executeUpdate();
+                transaction.commit();
+            } catch (Exception e) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
+                e.printStackTrace();
             }
         } catch (Exception e) {
-            e.printStackTrace();  // Логируем ошибку
+            e.printStackTrace();
         }
     }
+
 }

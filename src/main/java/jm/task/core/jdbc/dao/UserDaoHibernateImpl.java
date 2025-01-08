@@ -7,8 +7,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
-
-
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
@@ -25,22 +23,19 @@ public class UserDaoHibernateImpl implements UserDao {
                 "age TINYINT, " +
                 "PRIMARY KEY (id))";
 
+        Transaction transaction = null;
 
         try (SessionFactory sessionFactory = Util.getConnectionHibernate();
              Session session = sessionFactory.openSession()) {
 
-            Transaction transaction = session.beginTransaction();  // Начинаем транзакцию
-            try {
-                Query query = session.createSQLQuery(sql);
-                query.executeUpdate();
-                transaction.commit();
-            } catch (Exception e) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                e.printStackTrace();
-            }
+            transaction = session.beginTransaction();  // Начинаем транзакцию
+            Query query = session.createSQLQuery(sql);
+            query.executeUpdate();
+            transaction.commit();
         } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();  // Откатываем транзакцию в случае ошибки
+            }
             e.printStackTrace();
         }
     }
@@ -49,68 +44,61 @@ public class UserDaoHibernateImpl implements UserDao {
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS users";
 
-        // Используем один try с ресурсами
+        Transaction transaction = null;
+
         try (SessionFactory sessionFactory = Util.getConnectionHibernate();
              Session session = sessionFactory.openSession()) {
 
-            Transaction transaction = session.beginTransaction();
-            try {
-                Query query = session.createSQLQuery(sql);
-                query.executeUpdate();
-                transaction.commit();
-            } catch (Exception e) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                e.printStackTrace();
-            }
+            transaction = session.beginTransaction();  // Начинаем транзакцию
+            Query query = session.createSQLQuery(sql);
+            query.executeUpdate();
+            transaction.commit();
         } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();  // Откатываем транзакцию в случае ошибки
+            }
             e.printStackTrace();
         }
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
+        Transaction transaction = null;
+
         try (SessionFactory sessionFactory = Util.getConnectionHibernate();
              Session session = sessionFactory.openSession()) {
 
-            Transaction transaction = session.beginTransaction();
-            try {
-                User user = new User(name, lastName, age);
-                session.save(user);
-                transaction.commit();
-                System.out.println("User с именем — " + name + " добавлен в базу данных");
-            } catch (Exception e) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                e.printStackTrace();
-            }
+            transaction = session.beginTransaction();  // Начинаем транзакцию
+            User user = new User(name, lastName, age);
+            session.save(user);
+            transaction.commit();
+            System.out.println("User с именем — " + name + " добавлен в базу данных");
         } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();  // Откатываем транзакцию в случае ошибки
+            }
             e.printStackTrace();
         }
     }
 
     @Override
     public void removeUserById(long id) {
+        Transaction transaction = null;
+
         try (SessionFactory sessionFactory = Util.getConnectionHibernate();
              Session session = sessionFactory.openSession()) {
 
-            Transaction transaction = session.beginTransaction();
-            try {
-                User user = session.get(User.class, id);
-                if (user != null) {
-                    session.delete(user);
-                    System.out.println("User с ID — " + id + " удалён из базы данных");
-                }
-                transaction.commit();
-            } catch (Exception e) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                e.printStackTrace();
+            transaction = session.beginTransaction();  // Начинаем транзакцию
+            User user = session.get(User.class, id);
+            if (user != null) {
+                session.delete(user);
+                System.out.println("User с ID — " + id + " удалён из базы данных");
             }
+            transaction.commit();
         } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();  // Откатываем транзакцию в случае ошибки
+            }
             e.printStackTrace();
         }
     }
@@ -118,6 +106,7 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public List<User> getAllUsers() {
         List<User> users = null;
+
         try (SessionFactory sessionFactory = Util.getConnectionHibernate();
              Session session = sessionFactory.openSession()) {
 
@@ -131,23 +120,20 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
+        Transaction transaction = null;
+
         try (SessionFactory sessionFactory = Util.getConnectionHibernate();
              Session session = sessionFactory.openSession()) {
 
-            Transaction transaction = session.beginTransaction();
-            try {
-                Query query = session.createSQLQuery("TRUNCATE TABLE users");
-                query.executeUpdate();
-                transaction.commit();
-            } catch (Exception e) {
-                if (transaction != null) {
-                    transaction.rollback();
-                }
-                e.printStackTrace();
-            }
+            transaction = session.beginTransaction();  // Начинаем транзакцию
+            Query query = session.createSQLQuery("TRUNCATE TABLE users");
+            query.executeUpdate();
+            transaction.commit();
         } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();  // Откатываем транзакцию в случае ошибки
+            }
             e.printStackTrace();
         }
     }
-
 }
